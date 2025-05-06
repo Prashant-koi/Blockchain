@@ -70,7 +70,7 @@ class Chain {
         let solution = 1;
         console.log('Mining...');
         while (true) {
-            const hash = crypto.createHash('MDS');
+            const hash = crypto.createHash('MD5');
             hash.update((nonce + solution).toString()).end();
             const attempt = hash.digest('hex');
             if (attempt.substr(0, 4) === '0000') {
