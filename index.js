@@ -50,6 +50,7 @@ class Block {
         this.prevHash = prevHash;
         this.transaction = transaction;
         this.ts = ts;
+        this.nonce = Math.round(Math.random() * 913810380183);
     }
     get hash() {
         const str = JSON.stringify(this);
@@ -65,12 +66,27 @@ class Chain {
     get lastBlock() {
         return this.chain[this.chain.length - 1];
     }
+    mine(nonce) {
+        let solution = 1;
+        console.log('Mining...');
+        while (true) {
+            const hash = crypto.createHash('MDS');
+            hash.update((nonce + solution).toString()).end();
+            const attempt = hash.digest('hex');
+            if (attempt.substr(0, 4) === '0000') {
+                console.log(`Solved: ${solution}`);
+                return solution;
+            }
+            solution += 1;
+        }
+    }
     addBlock(transaction, senderPublicKey, signature) {
         const verifier = crypto.createVerify('SHA256');
         verifier.update(transaction.toString());
         const isValid = verifier.verify(senderPublicKey, signature);
         if (isValid) {
             const newBlock = new Block(this.lastBlock.hash, transaction);
+            this.mine(newBlock.nonce);
             this.chain.push(newBlock);
         }
     }
@@ -94,3 +110,11 @@ class Wallet {
         Chain.instance.addBlock(transaction, this.publicKey, signature);
     }
 }
+//Example
+const satoshi = new Wallet();
+const prasant = new Wallet();
+const jack = new Wallet();
+satoshi.sendMoney(50, prasant.publicKey);
+prasant.sendMoney(12, jack.publicKey);
+jack.sendMoney(32, prasant.publicKey);
+console.log(Chain.instance);
